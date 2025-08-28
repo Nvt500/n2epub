@@ -73,3 +73,27 @@ After following these requirements, simply call the `download()` method of the s
 List of implemented providers:
 
 - Novel Bin: https://novelbin.com/
+
+## Read
+
+```text
+Usage: n2epub read [OPTIONS] FILENAME
+
+  Read a novel in the command line from an epub file
+
+Options:
+  -h, --help  Show this message and exit.
+```
+
+Allows for reading novels without external tools.
+
+Controls:
+- Reading
+  - Vertical arrow keys: scroll up and down to view the chapter
+  - Horizontal arrow keys: switch between chapters
+  - tab: go to toc
+  - q: quit
+- Table of Contents
+  - Vertical arrow keys: scroll up and down to choose a chapter
+  - enter: select the highlighted chapter
+  - q: quit to reading without selecting anything

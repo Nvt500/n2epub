@@ -84,7 +84,7 @@ class Downloader:
         book.add_item(epub.EpubNav())
 
         epub.write_epub(novel_title + ".epub", book)
-        click.echo(f"Downloaded {os.path.join(constants.get_root_dir(), novel_title)}.")
+        click.echo(f"Downloaded {os.path.join(constants.get_root_dir(), novel_title + ".epub")}.")
 
 
     def download_chapters(self, urls: list[str], wait_time: int) -> list[epub.EpubHtml]:
@@ -139,7 +139,7 @@ class Downloader:
         for retry in range(retries+1):
             try:
                 chapter_response = self.scraper.get(chapter_url)
-                chapter_title = self.get_chapter_title(chapter_response) or f"Chapter {chapter_number + 1}"
+                chapter_title = self.get_chapter_title(chapter_response) or f"Chapter {chapter_number}"
                 chapter_text = self.get_chapter_text(chapter_response)
             except Exception as e:
                 exc = e
@@ -147,7 +147,7 @@ class Downloader:
                 continue
             else:
                 chapter = epub.EpubHtml(title=chapter_title,
-                                        file_name=f"{chapter_number + 1}_{"_".join(chapter_title.split(" "))}.xhtml")
+                                        file_name=f"{chapter_number}_{"_".join(chapter_title.split(" "))}.xhtml")
                 chapter.content = """<html>
             <h1>{chapter_title}</h1>
             {chapter_text}

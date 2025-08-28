@@ -50,7 +50,7 @@ def download(url: str, provider: str | None, sync: bool, wait_time: int, retries
     except ModuleNotFoundError:
         click.echo(f"{provider} is not a valid provider.", err=True)
     except Exception as e:
-        click.echo(f"Error occurred while downloading:\n{e}", err=True)
+        click.echo(f"Error occurred while downloading:\n\t{e}", err=True)
 
 
 def get_provider() -> str:
