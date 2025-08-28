@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "n2epub"
+version = "0.1.0"
+description = "A cli to download light/web novels as epub files."
+authors = ["Nvt5"]
+license = "MIT"
+readme = "README.md"
+packages = [
+    { include = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "3.13"
+click = "8.2.1"
+requests = "2.32.5"
+cloudscraper = "1.2.71"
+ebooklib = "0.19"
+
+[tool.poetry.group.dev.dependencies]
+PyInstaller = "6.14.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+n2epub = "src.n2epub:cli"

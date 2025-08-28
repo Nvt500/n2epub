@@ -1,0 +1,71 @@
+name: Build and Create Release for n2epub
+
+on:
+  push:
+    paths:
+      - src/**
+
+jobs:
+  pyinstaller_build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.13
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+
+    - name: Install Dependencies
+      run: | 
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build n2epub
+      run: pyinstaller src/n2epub.spec --distpath executable --workpath executable
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: n2epub
+        path: executable/n2epub.exe
+
+    - id: get_version
+      run: |
+        $version = (& executable/n2epub --version) -replace '^n2epub\s+', 'v'
+        echo "version=$version" >> $env:GITHUB_OUTPUT
+
+    - id: get_body
+      run: |
+        $lines = Get-Content CHANGELOG.md
+        $firstMatch = $lines | Where-Object { $_ -match '^##\s+\d+\.\d+\.\d+' } | Select-Object -First 1
+        $start = $lines.IndexOf($firstMatch)
+
+        $rest = $lines[($start + 1)..($lines.Count - 1)]
+        $nextMatch = $rest | Where-Object { $_ -match '^##\s+\d+\.\d+\.\d+' } | Select-Object -First 1
+        $end = if ($nextMatch) { $lines.IndexOf($nextMatch) - 1 } else { $lines.Count - 1 }
+
+        $latest = $lines[$start..$end]
+        $text = $latest -join "`n"
+
+        echo "body<<EOF" >> $env:GITHUB_OUTPUT
+        echo "$text" >> $env:GITHUB_OUTPUT
+        echo "EOF" >> $env:GITHUB_OUTPUT
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.get_version.outputs.version }}
+        release_name: ${{ steps.get_version.outputs.version }}
+        body: | 
+          ${{ steps.get_body.outputs.body }}
+
+    - name: Upload to Release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: executable/n2epub.exe
+        tag: ${{ steps.get_version.outputs.version }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
