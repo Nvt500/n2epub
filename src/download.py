@@ -10,9 +10,10 @@ from src.providers.novel_bin import NovelBinDownloader
 @click.argument("url")
 @click.option("-p", "--provider", "provider", is_flag=False, flag_value="", type=click.STRING, default=None, help="Name of the provider (website) of the novel.", metavar="PROVIDER")
 @click.option("-s", "--sync", "sync", is_flag=True, default=True, help="Download synchronously.")
-@click.option("-w", "--wait", "wait_time", default=3, type=click.IntRange(0, clamp=True), show_default=True, help="Time between each chapter or try.", metavar="TIME")
-@click.option("-r", "--retries", default=5, type=click.IntRange(0, clamp=True), show_default=True, help="Number of times to retry downloading each chapter.", metavar="RETRIES")
-def download(url: str, provider: str | None, sync: bool, wait_time: int, retries: int) -> None:
+@click.option("-w", "--wait", "wait_time", default=3, type=click.IntRange(0, clamp=True), show_default=True, help="Time between each chapter.", metavar="TIME")
+@click.option("-v", "--verbose", "verbose", is_flag=True, default=False, help="Output extra information.")
+@click.option("-m", "--max-workers", "max_workers", default=10, type=click.IntRange(1, clamp=True), show_default=True, help="Chapter group size to be downloaded at once in async.", metavar="WORKERS")
+def download(url: str, provider: str | None, sync: bool, wait_time: int, verbose: bool, max_workers: int) -> None:
     """Downloads a novel from a url as an epub file
 
         URL: the url to the homepage of the series to download.
@@ -22,20 +23,15 @@ def download(url: str, provider: str | None, sync: bool, wait_time: int, retries
 
         Use --provider as a flag to pick from a list of available providers.
 
-        \b
-        Sync:
-            wait_time: number of seconds to wait between downloading each chapter,
-                cloudflare can time out if it goes too fast and I find 3 seconds to work fine
-            retries is ignored
-        Async:
-            wait_time: number of seconds to wait between each try of downloading a chapter
-            retries: number of times to retry downloading a chapter
+        Only in sync wait_time is the number of seconds to wait between downloading each chapter.
+
+        Only in async max_workers is the size of the group of chapters to be downloaded at once.
     """
 
     try:
         if provider is None:
             if url.startswith("https://novelbin"):
-                NovelBinDownloader(url).download(sync, wait_time, retries)
+                NovelBinDownloader(url).download(sync, wait_time, verbose, max_workers)
             else:
                 raise Exception(f"{url} does not match any known provider (use --provider to explicitly specify a provider).")
             return
@@ -44,7 +40,7 @@ def download(url: str, provider: str | None, sync: bool, wait_time: int, retries
 
         provider_dict = importlib.import_module("src.providers." + provider).__dict__
         downloader = list(provider_dict.values())[-1]
-        downloader(url).download(sync, wait_time, retries)
+        downloader(url).download(sync, wait_time, verbose, max_workers)
     except constants.ProgError as e:
         raise Exception(e)
     except ModuleNotFoundError:

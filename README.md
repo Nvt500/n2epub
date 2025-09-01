@@ -9,6 +9,18 @@ The same as [man2cbz](https://github.com/Nvt500/man2cbz) but with novels.
 
 Either download the executable from the releases or build it yourself with something like `pyinstaller`.
 
+The .exe is for windows, the no extension is the linux binary.
+
+```text
+python -m venv venv
+venv\Scripts\activate | source venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+pip install pyinstaller
+pyinstaller src/n2epub.spec --distpath dist --workpath build
+deactivate
+```
+
 # Usage
 
 ## Download
@@ -26,27 +38,45 @@ Usage: n2epub download [OPTIONS] URL
 
   Use --provider as a flag to pick from a list of available providers.
 
-  Sync:
-      wait_time: number of seconds to wait between downloading each chapter,
-          cloudflare can time out if it goes too fast and I find 3 seconds to work fine
-      retries is ignored
-  Async:
-      wait_time: number of seconds to wait between each try of downloading a chapter
-      retries: number of times to retry downloading a chapter
+  Only in sync wait_time is the number of seconds to wait between downloading
+  each chapter.
+
+  Only in async max_workers is the size of the group of chapters to be
+  downloaded at once.
 
 Options:
-  -h, --help               Show this message and exit.
-  -p, --provider PROVIDER  Name of the provider (website) of the novel.
-  -s, --sync               Download synchronously.
-  -w, --wait TIME          Time between each chapter or try.  [default: 3;
-                           x>=0]
-  -r, --retries RETRIES    Number of times to retry downloading each chapter.
-                           [default: 5; x>=0]
+  -h, --help                 Show this message and exit.
+  -p, --provider PROVIDER    Name of the provider (website) of the novel.
+  -s, --sync                 Download synchronously.
+  -w, --wait TIME            Time between each chapter.  [default: 3; x>=0]
+  -v, --verbose              Output extra information.
+  -m, --max-workers WORKERS  Chapter group size to be downloaded at once in
+                             async.  [default: 10; x>=1]
 ```
 
 If the provider is using something like cloudflare, it can time out so waiting between each chapter 
-download can keep prevent that. In async, it retries if failed after waiting some time as other
-requests are going at the same time so timing out is inevitable.
+download can keep prevent that.
+
+### Testing: Looked on "Latest Release" for newer novels with fewer chapters
+
+- https://novelbin.com/b/fff-class-trashero
+    #### Sync:
+        442 chapters * 3 seconds each = 1326 seconds
+    #### Async (max_workers=10):
+        Using time.time() before and after = 719 seconds
+- https://novelbin.com/b/my-unrestrained-lives
+    #### Sync:
+        63 chapters * 3 seconds each = 189 seconds
+        Using time.time() before and after = 198 seconds
+    #### Async (max_workers=10):
+        Using time.time() before and after = 61 seconds
+- https://novelbin.com/b/bestowing-falna-on-the-kunoichi
+    #### Sync:
+        60 chapters * 3 seconds each = 180 seconds
+    #### Async (max_workers=10):
+        Using time.time() before and after = 78 seconds
+    #### Async (max_workers=15)
+        Using time.time() before and after = 116 seconds
 
 ### Providers
 
@@ -82,18 +112,20 @@ Usage: n2epub read [OPTIONS] FILENAME
   Read a novel in the command line from an epub file
 
 Options:
-  -h, --help  Show this message and exit.
+  -h, --help    Show this message and exit.
+  -s, --select  Choose a novel from the directory of the executable.
 ```
 
-Allows for reading novels without external tools.
+Allows for reading novels without external tools. When using `--select` just type anything for 
+`FILENAME`.
 
 Controls:
 - Reading
-  - Vertical arrow keys: scroll up and down to view the chapter
-  - Horizontal arrow keys: switch between chapters
+  - Vertical arrow keys, w and s: scroll up and down to view the chapter
+  - Horizontal arrow keys, a and d: switch between chapters
   - tab: go to toc
   - q: quit
 - Table of Contents
-  - Vertical arrow keys: scroll up and down to choose a chapter
-  - enter: select the highlighted chapter
+  - Vertical arrow keys, w and s: scroll up and down to choose a chapter
+  - enter or space: select the highlighted chapter
   - q: quit to reading without selecting anything

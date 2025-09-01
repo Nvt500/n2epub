@@ -2,4 +2,4 @@ click==8.2.1
 ebooklib==0.19
 requests==2.32.5
 cloudscraper==1.2.71
-windows-curses==2.4.1
+windows-curses==2.4.1; sys.platform == 'win32'

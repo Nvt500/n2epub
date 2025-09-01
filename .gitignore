@@ -1,3 +1,5 @@
 .idea
 executable
+dist
+build
 *.epub
