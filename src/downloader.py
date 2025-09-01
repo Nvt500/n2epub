@@ -78,15 +78,10 @@ class Downloader:
         else:
             book.spine = ["nav"]
 
-        time1 = time.time()
-
         if not threaded:
             chapters = self.download_chapters(urls, wait_time)
         else:
             chapters = self.download_chapters_threaded(urls, verbose, max_workers)
-
-        time2 = time.time()
-        click.echo(f"Downloaded {len(urls)} chapters in {time2 - time1} seconds.")
 
         if chapters is None:
             return
